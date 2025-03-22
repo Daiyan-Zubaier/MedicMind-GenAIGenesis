@@ -1,7 +1,10 @@
 
-import React, { useState } from 'react';
-import { AlertTriangle, ArrowRight, Phone, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { AlertTriangle, ArrowRight, Phone, Check, Volume2, VolumeX, Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { speak, listenForReady } from '@/lib/speechUtils';
+import { toast } from 'sonner';
 
 export interface Instruction {
   id: number;
@@ -22,14 +25,121 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
   isUrgent,
 }) => {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-
-  const toggleStep = (id: number) => {
-    if (completedSteps.includes(id)) {
-      setCompletedSteps(completedSteps.filter((stepId) => stepId !== id));
+  const [voiceEnabled, setVoiceEnabled] = useState<boolean>(false);
+  const [currentVoiceStep, setCurrentVoiceStep] = useState<number>(0);
+  const [isListening, setIsListening] = useState<boolean>(false);
+  const [stopListeningFn, setStopListeningFn] = useState<(() => void) | null>(null);
+  
+  // Toggle voice instructions
+  const toggleVoice = () => {
+    if (!voiceEnabled) {
+      // Enable voice and start from the beginning
+      setVoiceEnabled(true);
+      setCurrentVoiceStep(1);
+      setCompletedSteps([]);
+      
+      // Initial introduction
+      const introText = `First aid instructions for ${emergency}. I'll guide you step by step. Say "Ready" or "Next" after each instruction to continue.`;
+      speak(introText, () => {
+        // After introduction, read the first step
+        const firstStep = instructions.find(i => i.id === 1);
+        if (firstStep) {
+          speak(firstStep.text, () => startListeningForNextStep());
+        }
+      });
     } else {
-      setCompletedSteps([...completedSteps, id]);
+      // Disable voice
+      setVoiceEnabled(false);
+      if (stopListeningFn) {
+        stopListeningFn();
+        setStopListeningFn(null);
+      }
+      setIsListening(false);
+      window.speechSynthesis.cancel();
+      toast.info("Voice instructions disabled");
     }
   };
+  
+  // Listen for user saying "ready" to move to next step
+  const startListeningForNextStep = () => {
+    setIsListening(true);
+    const stopFn = listenForReady(
+      () => {
+        setIsListening(false);
+        moveToNextStep();
+      },
+      () => {
+        setIsListening(false);
+        toast.error("Could not understand. Please tap the step to continue.");
+      }
+    );
+    setStopListeningFn(() => stopFn);
+  };
+  
+  // Move to the next instruction step
+  const moveToNextStep = () => {
+    if (currentVoiceStep < instructions.length) {
+      const nextStep = currentVoiceStep + 1;
+      setCurrentVoiceStep(nextStep);
+      setCompletedSteps(prev => [...prev, currentVoiceStep]);
+      
+      const instruction = instructions.find(i => i.id === nextStep);
+      if (instruction) {
+        speak(instruction.text, () => {
+          if (nextStep < instructions.length) {
+            startListeningForNextStep();
+          } else {
+            speak("Those are all the steps. I hope this helped with your emergency situation.", 
+                 () => {
+                   setVoiceEnabled(false);
+                   setIsListening(false);
+                 });
+          }
+        });
+      }
+    } else {
+      setVoiceEnabled(false);
+      setIsListening(false);
+    }
+  };
+  
+  // Handle manual step toggling when voice is not enabled
+  const toggleStep = (id: number) => {
+    if (voiceEnabled) {
+      // In voice mode, tapping a step will read it aloud
+      const instruction = instructions.find(i => i.id === id);
+      if (instruction) {
+        if (stopListeningFn) {
+          stopListeningFn();
+          setStopListeningFn(null);
+        }
+        setIsListening(false);
+        setCurrentVoiceStep(id);
+        speak(instruction.text, () => {
+          if (id < instructions.length) {
+            startListeningForNextStep();
+          }
+        });
+      }
+    } else {
+      // Normal toggle behavior when voice is off
+      if (completedSteps.includes(id)) {
+        setCompletedSteps(completedSteps.filter((stepId) => stepId !== id));
+      } else {
+        setCompletedSteps([...completedSteps, id]);
+      }
+    }
+  };
+  
+  // Cleanup speech synthesis and recognition when component unmounts
+  useEffect(() => {
+    return () => {
+      if (stopListeningFn) {
+        stopListeningFn();
+      }
+      window.speechSynthesis?.cancel();
+    };
+  }, [stopListeningFn]);
 
   return (
     <div className="w-full max-w-3xl mx-auto mt-6 px-4 animate-fade-in">
@@ -51,8 +161,26 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
         )}
         
         <div className="p-6">
-          <h2 className="text-xl font-semibold mb-1">First Aid for: {emergency}</h2>
-          <p className="text-sm text-muted-foreground mb-6">Follow these steps carefully</p>
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-xl font-semibold mb-1">First Aid for: {emergency}</h2>
+              <p className="text-sm text-muted-foreground">Follow these steps carefully</p>
+            </div>
+            <Button 
+              variant={voiceEnabled ? "default" : "outline"}
+              size="sm"
+              onClick={toggleVoice}
+              className="relative"
+            >
+              {voiceEnabled ? <Volume2 className="mr-2" /> : <VolumeX className="mr-2" />}
+              {voiceEnabled ? "Voice On" : "Voice Off"}
+              {isListening && (
+                <span className="absolute -right-2 -top-2">
+                  <Mic className="h-4 w-4 text-green-500 animate-pulse" />
+                </span>
+              )}
+            </Button>
+          </div>
           
           <div className="space-y-5">
             {instructions.map((instruction) => (
@@ -60,17 +188,20 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
                 key={instruction.id}
                 className={cn(
                   "flex space-x-4 transition-all duration-300 p-3 rounded-lg",
-                  completedSteps.includes(instruction.id) ? "bg-primary/5" : "hover:bg-accent"
+                  voiceEnabled && currentVoiceStep === instruction.id ? "bg-primary/10 border border-primary/30" : "",
+                  !voiceEnabled && completedSteps.includes(instruction.id) ? "bg-primary/5" : "hover:bg-accent",
                 )}
+                onClick={() => toggleStep(instruction.id)}
               >
                 <div 
                   className={cn(
                     "flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mt-0.5 border",
-                    completedSteps.includes(instruction.id) 
-                      ? "bg-primary border-primary text-primary-foreground" 
-                      : "border-muted-foreground/30"
+                    voiceEnabled && currentVoiceStep === instruction.id 
+                      ? "bg-primary border-primary text-primary-foreground"
+                      : !voiceEnabled && completedSteps.includes(instruction.id) 
+                        ? "bg-primary border-primary text-primary-foreground" 
+                        : "border-muted-foreground/30"
                   )}
-                  onClick={() => toggleStep(instruction.id)}
                   role="checkbox"
                   aria-checked={completedSteps.includes(instruction.id)}
                   tabIndex={0}
@@ -80,7 +211,8 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
                     }
                   }}
                 >
-                  {completedSteps.includes(instruction.id) ? (
+                  {(voiceEnabled && currentVoiceStep === instruction.id) || 
+                   (!voiceEnabled && completedSteps.includes(instruction.id)) ? (
                     <Check className="h-3.5 w-3.5" />
                   ) : (
                     <ArrowRight className="h-3.5 w-3.5 opacity-50" />
@@ -89,7 +221,8 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
                 <div className="flex-grow">
                   <p className={cn(
                     "text-base transition-colors",
-                    completedSteps.includes(instruction.id) && "text-muted-foreground"
+                    voiceEnabled && currentVoiceStep === instruction.id && "font-medium",
+                    !voiceEnabled && completedSteps.includes(instruction.id) && "text-muted-foreground"
                   )}>
                     {instruction.text}
                   </p>
@@ -108,6 +241,12 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
               </div>
             ))}
           </div>
+          
+          {voiceEnabled && isListening && (
+            <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
+              <p className="text-sm">Listening... Say "Ready" or "Next" when you're ready for the next step.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
