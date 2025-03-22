@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, ArrowRight, Phone, Check, Volume2, VolumeX, Mic, FileText, Headphones } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Phone, Volume2, VolumeX, Mic, FileText, Headphones } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { speak, listenForReady } from '@/lib/speechUtils';
@@ -84,7 +85,7 @@ const FirstAidInstructions = ({ instructions, emergency, isUrgent }) => {
       if (instruction) {
         speak(instruction.text, () => {
           if (nextStep < instructions.length) {
-            // After reading step, start listening for next command
+            // After reading step, automatically start listening for next command
             startListeningForNextStep();
           } else {
             speak("Those are all the steps. I hope this helped with your emergency situation. Say 'ready' to generate a report.", 
@@ -203,7 +204,7 @@ const FirstAidInstructions = ({ instructions, emergency, isUrgent }) => {
           </div>
           
           <div className="space-y-5">
-            {instructions.map(instruction => (
+            {instructions.map((instruction, index) => (
               <div 
                 key={instruction.id}
                 className={cn(
@@ -222,21 +223,8 @@ const FirstAidInstructions = ({ instructions, emergency, isUrgent }) => {
                         ? "bg-primary border-primary text-primary-foreground" 
                         : "border-muted-foreground/30"
                   )}
-                  role="checkbox"
-                  aria-checked={completedSteps.includes(instruction.id)}
-                  tabIndex={0}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      toggleStep(instruction.id);
-                    }
-                  }}
                 >
-                  {(voiceEnabled && currentVoiceStep === instruction.id) || 
-                   (!voiceEnabled && completedSteps.includes(instruction.id)) ? (
-                    <Check className="h-3.5 w-3.5" />
-                  ) : (
-                    <ArrowRight className="h-3.5 w-3.5 opacity-50" />
-                  )}
+                  <span className="font-medium text-sm">{instruction.id}</span>
                 </div>
                 <div className="flex-grow">
                   <p className={cn(
@@ -252,7 +240,7 @@ const FirstAidInstructions = ({ instructions, emergency, isUrgent }) => {
                       <img 
                         src={instruction.imageUrl} 
                         alt={`Illustration for step ${instruction.id}`}
-                        className="w-full h-auto max-h-60 object-cover"
+                        className="w-full h-auto object-contain max-h-96"
                         loading="lazy"
                       />
                     </div>
