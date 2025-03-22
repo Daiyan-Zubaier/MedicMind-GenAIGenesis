@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, ArrowRight, Phone, Check, Volume2, VolumeX, Mic } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Phone, Check, Volume2, VolumeX, Mic, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { speak, listenForReady } from '@/lib/speechUtils';
 import { toast } from 'sonner';
+import Call911Confirmation from './Call911Confirmation';
+import EmergencyReport from './EmergencyReport';
 
 export interface Instruction {
   id: number;
@@ -29,6 +31,8 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
   const [currentVoiceStep, setCurrentVoiceStep] = useState<number>(0);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [stopListeningFn, setStopListeningFn] = useState<(() => void) | null>(null);
+  const [showCallConfirmation, setShowCallConfirmation] = useState<boolean>(false);
+  const [showReport, setShowReport] = useState<boolean>(false);
   
   // Toggle voice instructions
   const toggleVoice = () => {
@@ -131,6 +135,21 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
     }
   };
   
+  // Handle 911 call with confirmation
+  const handleCall911 = () => {
+    setShowCallConfirmation(true);
+  };
+
+  const confirmCall911 = () => {
+    window.location.href = "tel:911";
+    setShowCallConfirmation(false);
+  };
+  
+  // Generate report
+  const handleGenerateReport = () => {
+    setShowReport(true);
+  };
+  
   // Cleanup speech synthesis and recognition when component unmounts
   useEffect(() => {
     return () => {
@@ -150,13 +169,14 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
               <AlertTriangle className="h-5 w-5 text-emergency-foreground" />
               <h3 className="font-medium text-emergency-foreground">Emergency Situation</h3>
             </div>
-            <a 
-              href="tel:911"
-              className="flex items-center space-x-2 bg-white text-emergency px-3 py-1.5 rounded-md text-sm font-medium hover:bg-white/90 transition-colors"
+            <Button 
+              variant="secondary"
+              onClick={handleCall911}
+              className="bg-white text-emergency hover:bg-white/90"
             >
-              <Phone className="h-4 w-4" />
+              <Phone className="h-4 w-4 mr-2" />
               <span>Call 911</span>
-            </a>
+            </Button>
           </div>
         )}
         
@@ -166,20 +186,22 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
               <h2 className="text-xl font-semibold mb-1">First Aid for: {emergency}</h2>
               <p className="text-sm text-muted-foreground">Follow these steps carefully</p>
             </div>
-            <Button 
-              variant={voiceEnabled ? "default" : "outline"}
-              size="sm"
-              onClick={toggleVoice}
-              className="relative"
-            >
-              {voiceEnabled ? <Volume2 className="mr-2" /> : <VolumeX className="mr-2" />}
-              {voiceEnabled ? "Voice On" : "Voice Off"}
-              {isListening && (
-                <span className="absolute -right-2 -top-2">
-                  <Mic className="h-4 w-4 text-green-500 animate-pulse" />
-                </span>
-              )}
-            </Button>
+            <div className="flex space-x-2">
+              <Button 
+                variant={voiceEnabled ? "default" : "outline"}
+                size="sm"
+                onClick={toggleVoice}
+                className="relative"
+              >
+                {voiceEnabled ? <Volume2 className="mr-2" /> : <VolumeX className="mr-2" />}
+                {voiceEnabled ? "Voice On" : "Voice Off"}
+                {isListening && (
+                  <span className="absolute -right-2 -top-2">
+                    <Mic className="h-4 w-4 text-green-500 animate-pulse" />
+                  </span>
+                )}
+              </Button>
+            </div>
           </div>
           
           <div className="space-y-5">
@@ -247,8 +269,32 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
               <p className="text-sm">Listening... Say "Ready" or "Next" when you're ready for the next step.</p>
             </div>
           )}
+          
+          <div className="mt-8 flex justify-end">
+            <Button onClick={handleGenerateReport} className="gap-2">
+              <FileText className="h-4 w-4" />
+              Done - Generate Report
+            </Button>
+          </div>
         </div>
       </div>
+      
+      {/* 911 Call Confirmation Dialog */}
+      <Call911Confirmation
+        open={showCallConfirmation}
+        onOpenChange={setShowCallConfirmation}
+        onConfirm={confirmCall911}
+      />
+      
+      {/* Emergency Report Dialog */}
+      <EmergencyReport
+        open={showReport}
+        onOpenChange={setShowReport}
+        emergency={emergency}
+        instructions={instructions}
+        completedSteps={completedSteps}
+        onBack={() => setShowReport(false)}
+      />
     </div>
   );
 };
