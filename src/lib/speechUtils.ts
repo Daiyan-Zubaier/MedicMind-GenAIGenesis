@@ -97,3 +97,63 @@ export const listenForReady = (
     recognition.stop();
   };
 };
+
+// Voice to text for form fields
+export const startVoiceToText = (
+  onTranscript: (text: string) => void,
+  onFinish?: () => void
+): (() => void) => {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  
+  if (!SpeechRecognition) {
+    console.error('Speech recognition not supported');
+    if (onFinish) onFinish();
+    return () => {};
+  }
+  
+  const recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = 'en-US';
+  
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    onTranscript(transcript);
+    
+    // Start listening again to continue capturing speech
+    setTimeout(() => {
+      try {
+        recognition.start();
+      } catch (e) {
+        console.error('Error restarting speech recognition:', e);
+        if (onFinish) onFinish();
+      }
+    }, 1000);
+  };
+  
+  recognition.onerror = (event) => {
+    console.error('Speech recognition error:', event);
+    if (onFinish) onFinish();
+  };
+  
+  recognition.onend = () => {
+    // This can be triggered when the user stops talking or
+    // the recognition is interrupted
+  };
+  
+  try {
+    recognition.start();
+  } catch (e) {
+    console.error('Error starting speech recognition:', e);
+    if (onFinish) onFinish();
+  }
+  
+  // Return a function to stop listening
+  return () => {
+    try {
+      recognition.stop();
+    } catch (e) {
+      console.error('Error stopping speech recognition:', e);
+    }
+  };
+};
