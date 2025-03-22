@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText, Printer, ArrowLeft } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { FileText, Printer, ArrowLeft, Mic, MicOff } from 'lucide-react';
 import { Instruction } from './FirstAidInstructions';
+import { startVoiceToText } from '@/lib/speechUtils';
 
 interface EmergencyReportProps {
   open: boolean;
@@ -26,8 +28,58 @@ const EmergencyReport: React.FC<EmergencyReportProps> = ({
   const [notes, setNotes] = useState<string>('');
   const [location, setLocation] = useState<string>('');
   const [additionalInfo, setAdditionalInfo] = useState<string>('');
+  const [witnessContacts, setWitnessContacts] = useState<string>('');
+  const [previousEvents, setPreviousEvents] = useState<string>('');
+  const [activeVoiceField, setActiveVoiceField] = useState<string | null>(null);
   
   const currentDate = new Date().toLocaleString();
+  
+  // Handle voice to text for different fields
+  const handleVoiceToText = (fieldName: string) => {
+    // If we're already recording for this field, stop it
+    if (activeVoiceField === fieldName) {
+      setActiveVoiceField(null);
+      return;
+    }
+    
+    // Start voice recording for the selected field
+    setActiveVoiceField(fieldName);
+    
+    const updateField = (text: string) => {
+      switch (fieldName) {
+        case 'location':
+          setLocation(prev => prev + ' ' + text);
+          break;
+        case 'notes':
+          setNotes(prev => prev + ' ' + text);
+          break;
+        case 'additionalInfo':
+          setAdditionalInfo(prev => prev + ' ' + text);
+          break;
+        case 'witnessContacts':
+          setWitnessContacts(prev => prev + ' ' + text);
+          break;
+        case 'previousEvents':
+          setPreviousEvents(prev => prev + ' ' + text);
+          break;
+      }
+    };
+    
+    const stopRecording = startVoiceToText(
+      (text) => {
+        updateField(text);
+      },
+      () => {
+        setActiveVoiceField(null);
+      }
+    );
+    
+    // After 30 seconds, automatically stop recording
+    setTimeout(() => {
+      stopRecording();
+      setActiveVoiceField(null);
+    }, 30000);
+  };
   
   const handlePrint = () => {
     // Create a printable version of the report
@@ -72,6 +124,14 @@ const EmergencyReport: React.FC<EmergencyReportProps> = ({
             </ol>
           </div>
           <div class="section">
+            <h2>Witness Contacts</h2>
+            <p>${witnessContacts.replace(/\n/g, '<br/>') || "(None provided)"}</p>
+          </div>
+          <div class="section">
+            <h2>Previous Events</h2>
+            <p>${previousEvents.replace(/\n/g, '<br/>') || "(None provided)"}</p>
+          </div>
+          <div class="section">
             <h2>Additional Notes</h2>
             <p>${notes.replace(/\n/g, '<br/>') || "(None provided)"}</p>
           </div>
@@ -111,12 +171,22 @@ const EmergencyReport: React.FC<EmergencyReportProps> = ({
           
           <div>
             <h3 className="text-sm font-medium mb-2">Location</h3>
-            <Textarea 
-              placeholder="Enter location where the emergency occurred" 
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="resize-none"
-            />
+            <div className="flex gap-2">
+              <Textarea 
+                placeholder="Enter location where the emergency occurred" 
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="resize-none flex-grow"
+              />
+              <Button 
+                variant={activeVoiceField === 'location' ? 'default' : 'outline'} 
+                size="icon"
+                onClick={() => handleVoiceToText('location')}
+                className={activeVoiceField === 'location' ? 'bg-red-500 hover:bg-red-600' : ''}
+              >
+                {activeVoiceField === 'location' ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
           
           <div>
@@ -131,23 +201,83 @@ const EmergencyReport: React.FC<EmergencyReportProps> = ({
           </div>
           
           <div>
+            <h3 className="text-sm font-medium mb-2">Witness Contacts</h3>
+            <div className="flex gap-2">
+              <Textarea 
+                placeholder="Enter contact information for any witnesses" 
+                value={witnessContacts}
+                onChange={(e) => setWitnessContacts(e.target.value)}
+                className="min-h-[100px] flex-grow"
+              />
+              <Button 
+                variant={activeVoiceField === 'witnessContacts' ? 'default' : 'outline'} 
+                size="icon"
+                onClick={() => handleVoiceToText('witnessContacts')}
+                className={activeVoiceField === 'witnessContacts' ? 'bg-red-500 hover:bg-red-600' : ''}
+              >
+                {activeVoiceField === 'witnessContacts' ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="text-sm font-medium mb-2">Previous Events</h3>
+            <div className="flex gap-2">
+              <Textarea 
+                placeholder="Describe what happened before the emergency occurred" 
+                value={previousEvents}
+                onChange={(e) => setPreviousEvents(e.target.value)}
+                className="min-h-[100px] flex-grow"
+              />
+              <Button 
+                variant={activeVoiceField === 'previousEvents' ? 'default' : 'outline'} 
+                size="icon"
+                onClick={() => handleVoiceToText('previousEvents')}
+                className={activeVoiceField === 'previousEvents' ? 'bg-red-500 hover:bg-red-600' : ''}
+              >
+                {activeVoiceField === 'previousEvents' ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+          
+          <div>
             <h3 className="text-sm font-medium mb-2">Additional Notes</h3>
-            <Textarea 
-              placeholder="Enter any additional notes, observations, or outcomes" 
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-[100px]"
-            />
+            <div className="flex gap-2">
+              <Textarea 
+                placeholder="Enter any additional notes, observations, or outcomes" 
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="min-h-[100px] flex-grow"
+              />
+              <Button 
+                variant={activeVoiceField === 'notes' ? 'default' : 'outline'} 
+                size="icon"
+                onClick={() => handleVoiceToText('notes')}
+                className={activeVoiceField === 'notes' ? 'bg-red-500 hover:bg-red-600' : ''}
+              >
+                {activeVoiceField === 'notes' ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
           
           <div>
             <h3 className="text-sm font-medium mb-2">Additional Information</h3>
-            <Textarea 
-              placeholder="Enter any information that might be relevant for insurance or medical follow-up" 
-              value={additionalInfo}
-              onChange={(e) => setAdditionalInfo(e.target.value)}
-              className="min-h-[100px]"
-            />
+            <div className="flex gap-2">
+              <Textarea 
+                placeholder="Enter any information that might be relevant for insurance or medical follow-up" 
+                value={additionalInfo}
+                onChange={(e) => setAdditionalInfo(e.target.value)}
+                className="min-h-[100px] flex-grow"
+              />
+              <Button 
+                variant={activeVoiceField === 'additionalInfo' ? 'default' : 'outline'} 
+                size="icon"
+                onClick={() => handleVoiceToText('additionalInfo')}
+                className={activeVoiceField === 'additionalInfo' ? 'bg-red-500 hover:bg-red-600' : ''}
+              >
+                {activeVoiceField === 'additionalInfo' ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
         </div>
         

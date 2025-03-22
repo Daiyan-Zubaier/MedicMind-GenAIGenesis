@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, ArrowRight, Phone, Check, Volume2, VolumeX, Mic, FileText } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Phone, Check, Volume2, VolumeX, Mic, FileText, Headphones } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { speak, listenForReady } from '@/lib/speechUtils';
@@ -39,17 +39,14 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
     if (!voiceEnabled) {
       // Enable voice and start from the beginning
       setVoiceEnabled(true);
-      setCurrentVoiceStep(1);
+      setCurrentVoiceStep(0); // Start at 0 so we can move to 1 in moveToNextStep
       setCompletedSteps([]);
       
       // Initial introduction
       const introText = `First aid instructions for ${emergency}. I'll guide you step by step. Say "Ready" or "Next" after each instruction to continue.`;
       speak(introText, () => {
-        // After introduction, read the first step
-        const firstStep = instructions.find(i => i.id === 1);
-        if (firstStep) {
-          speak(firstStep.text, () => startListeningForNextStep());
-        }
+        // After introduction, automatically move to first step
+        moveToNextStep();
       });
     } else {
       // Disable voice
@@ -60,7 +57,7 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
       }
       setIsListening(false);
       window.speechSynthesis.cancel();
-      toast.info("Voice instructions disabled");
+      toast.info("Audio help disabled");
     }
   };
   
@@ -74,7 +71,9 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
       },
       () => {
         setIsListening(false);
-        toast.error("Could not understand. Please tap the step to continue.");
+        toast.error("Could not understand. Retrying...");
+        // Retry listening automatically
+        setTimeout(() => startListeningForNextStep(), 1000);
       }
     );
     setStopListeningFn(() => stopFn);
@@ -82,26 +81,38 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
   
   // Move to the next instruction step
   const moveToNextStep = () => {
-    if (currentVoiceStep < instructions.length) {
-      const nextStep = currentVoiceStep + 1;
+    // Cleanup any existing listeners
+    if (stopListeningFn) {
+      stopListeningFn();
+      setStopListeningFn(null);
+    }
+    
+    const nextStep = currentVoiceStep + 1;
+    
+    if (nextStep <= instructions.length) {
       setCurrentVoiceStep(nextStep);
-      setCompletedSteps(prev => [...prev, currentVoiceStep]);
+      setCompletedSteps(prev => {
+        if (!prev.includes(nextStep - 1) && nextStep > 1) {
+          return [...prev, nextStep - 1];
+        }
+        return prev;
+      });
       
       const instruction = instructions.find(i => i.id === nextStep);
       if (instruction) {
         speak(instruction.text, () => {
           if (nextStep < instructions.length) {
+            // After reading step, start listening for next command
             startListeningForNextStep();
           } else {
-            speak("Those are all the steps. I hope this helped with your emergency situation.", 
-                 () => {
-                   setVoiceEnabled(false);
-                   setIsListening(false);
-                 });
+            speak("Those are all the steps. I hope this helped with your emergency situation. Say 'ready' to generate a report.", 
+                 () => startListeningForNextStep());
           }
         });
       }
     } else {
+      // If we've gone through all steps and user says ready again, show report
+      handleGenerateReport();
       setVoiceEnabled(false);
       setIsListening(false);
     }
@@ -122,6 +133,9 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
         speak(instruction.text, () => {
           if (id < instructions.length) {
             startListeningForNextStep();
+          } else {
+            speak("Those are all the steps. Say 'ready' to generate a report.",
+                 () => startListeningForNextStep());
           }
         });
       }
@@ -193,8 +207,8 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
                 onClick={toggleVoice}
                 className="relative"
               >
-                {voiceEnabled ? <Volume2 className="mr-2" /> : <VolumeX className="mr-2" />}
-                {voiceEnabled ? "Voice On" : "Voice Off"}
+                {voiceEnabled ? <Headphones className="mr-2" /> : <Headphones className="mr-2" />}
+                {voiceEnabled ? "Audio Help On" : "Audio Help"}
                 {isListening && (
                   <span className="absolute -right-2 -top-2">
                     <Mic className="h-4 w-4 text-green-500 animate-pulse" />
