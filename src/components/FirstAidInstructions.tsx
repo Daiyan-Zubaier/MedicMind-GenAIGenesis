@@ -41,13 +41,13 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
       setVoiceEnabled(true);
       setCurrentVoiceStep(0); // Start at 0 so we can move to 1 in moveToNextStep
       setCompletedSteps([]);
-      
+
       // Initial introduction
-      const introText = `First aid instructions for ${emergency}. I'll guide you step by step. Say "Ready" or "Next" after each instruction to continue.`;
-      speak(introText, () => {
-        // After introduction, automatically move to first step
-        moveToNextStep();
-      });
+    const introText = `First aid instructions for ${emergency}. I'll guide you step by step. Say "Ready" or "Next" when you're ready for the first step.`;
+    speak(introText, () => {
+      // After introduction, wait for user's command before starting the first step
+      startListeningForNextStep();
+    });
     } else {
       // Disable voice
       setVoiceEnabled(false);
@@ -165,7 +165,7 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
   };
   
   // Cleanup speech synthesis and recognition when component unmounts
-  /*useEffect(() => {
+  useEffect(() => {
     return () => {
       if (stopListeningFn) {
         stopListeningFn();
@@ -173,20 +173,7 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
       window.speechSynthesis?.cancel();
     };
   }, [stopListeningFn]);
-*/
-  useEffect(() => {
-  if (voiceEnabled && currentVoiceStep < instructions.length) {
-    speak(instructions[currentVoiceStep].text, () => {
-      setCurrentVoiceStep((prev) => prev + 1);
-    });
-  }
-
-  // Optional: Stop voice mode at the end
-  if (currentVoiceStep >= instructions.length) {
-    setVoiceEnabled(false);
-  }
-}, [currentVoiceStep, voiceEnabled, instructions]);
-
+  
   return (
     <div className="w-full max-w-3xl mx-auto mt-6 px-4 animate-fade-in">
       <div className="glass-card rounded-xl overflow-hidden">
