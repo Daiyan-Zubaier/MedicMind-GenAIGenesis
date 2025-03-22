@@ -210,23 +210,12 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
                 </div>
                 <div className="flex-grow">
                   <p className={cn(
-                    "text-base transition-colors",
+                    "text-base transition-colors", 
                     voiceEnabled && currentVoiceStep === instruction.id && "font-medium",
                     !voiceEnabled && completedSteps.includes(instruction.id) && "text-muted-foreground"
                   )}>
                     {instruction.text}
                   </p>
-                  
-                  {instruction.imageUrl && (
-                    <div className="mt-3 rounded-lg overflow-hidden border border-border">
-                      <img 
-                        src={instruction.imageUrl} 
-                        alt={`Illustration for step ${instruction.id}`}
-                        className="w-full h-auto max-h-60 object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
