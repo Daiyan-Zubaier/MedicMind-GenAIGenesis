@@ -1,4 +1,3 @@
-
 import { Instruction } from '@/components/FirstAidInstructions';
 
 export interface EmergencyType {
@@ -20,7 +19,7 @@ export const commonEmergencies: EmergencyType[] = [
     instructions: [
       { 
         id: 1, 
-        text: 'Encourage the person to cough forcefully if they can. If they can't speak, cough, or breathe, proceed to the next steps immediately.' 
+        text: 'Encourage the person to cough forcefully if they can. If they can\'t speak, cough, or breathe, proceed to the next steps immediately.' 
       },
       { 
         id: 2, 
