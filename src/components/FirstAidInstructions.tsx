@@ -165,7 +165,7 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
   };
   
   // Cleanup speech synthesis and recognition when component unmounts
-  useEffect(() => {
+  /*useEffect(() => {
     return () => {
       if (stopListeningFn) {
         stopListeningFn();
@@ -173,6 +173,19 @@ const FirstAidInstructions: React.FC<FirstAidInstructionsProps> = ({
       window.speechSynthesis?.cancel();
     };
   }, [stopListeningFn]);
+*/
+  useEffect(() => {
+  if (voiceEnabled && currentVoiceStep < instructions.length) {
+    speak(instructions[currentVoiceStep].text, () => {
+      setCurrentVoiceStep((prev) => prev + 1);
+    });
+  }
+
+  // Optional: Stop voice mode at the end
+  if (currentVoiceStep >= instructions.length) {
+    setVoiceEnabled(false);
+  }
+}, [currentVoiceStep, voiceEnabled, instructions]);
 
   return (
     <div className="w-full max-w-3xl mx-auto mt-6 px-4 animate-fade-in">
