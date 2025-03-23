@@ -4,6 +4,11 @@ from pydantic import BaseModel
 import openai
 import os
 from dotenv import load_dotenv
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -46,22 +51,26 @@ def analyze_emergency_level(text):
     
     return "medium"
 
+class TranscriptRequest(BaseModel):
+    transcript: str
+
 @app.post("/first-aid-guide")
-async def generate_ai_response(transcript):
+async def generate_ai_response(request: TranscriptRequest):
     """Generate first aid instructions using OpenAI."""
+    transcript = request.transcript
+    prompt = f"""You are an AI first aid assistant. Provide clear, step-by-step first aid instructions for the following situation:
+    
+    "{transcript}"
+    
+    Important guidelines:
+    1. If this is a life-threatening emergency, start your response with "CALL 911 IMMEDIATELY."
+    2. Provide concise, actionable steps in a numbered list.
+    3. Use simple, clear language that anyone can follow in an emergency.
+    4. If more information is needed to provide proper guidance, ask specific follow-up questions.
+    5. Include when to seek professional medical help.
+    """
+    
     try:
-        prompt = f"""You are an AI first aid assistant. Provide clear, step-by-step first aid instructions for the following situation:
-        
-        "{transcript}"
-        
-        Important guidelines:
-        1. If this is a life-threatening emergency, start your response with "CALL 911 IMMEDIATELY."
-        2. Provide concise, actionable steps in a numbered list.
-        3. Use simple, clear language that anyone can follow in an emergency.
-        4. If more information is needed to provide proper guidance, ask specific follow-up questions.
-        5. Include when to seek professional medical help.
-        """
-        
         response = openai.ChatCompletion.create(
             model="gpt-4",  # or "gpt-3.5-turbo" if gpt-4 is not available
             messages=[
@@ -69,10 +78,9 @@ async def generate_ai_response(transcript):
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3,  # Lower temperature for more consistent, factual responses
-            max_tokens=500
         )
         
         return response.choices[0].message.content.strip()
     except Exception as e:
-        print(f"Error generating AI response: {e}")
+        logger.error(f"Error generating AI response: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate response: {str(e)}")
