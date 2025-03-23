@@ -1,5 +1,5 @@
 
-import { toast } from "sonner";
+import { toast } from "sonner"
 
 export const analyzeEmergency = (query: string): { isUrgent: boolean; callEmergency: boolean } => {
   const normalizedQuery = query.toLowerCase();
@@ -29,7 +29,7 @@ export const analyzeEmergency = (query: string): { isUrgent: boolean; callEmerge
   // Check if it's urgent but might not necessarily need immediate 911
   const potentiallyUrgentKeywords = [
     'pain', 'severe', 'blood', 'injured', 'accident', 'fell', 'hit', 'cut',
-    'burn', 'broken', 'fracture', 'head', 'spine', 'back', 'neck'
+    'burn', 'broken', 'fracture', 'head', 's  pine', 'back', 'neck'
   ];
   
   const isPotentiallyUrgent = potentiallyUrgentKeywords.some(keyword => 
@@ -39,31 +39,19 @@ export const analyzeEmergency = (query: string): { isUrgent: boolean; callEmerge
   return { isUrgent: isPotentiallyUrgent, callEmergency: false };
 };
 
-export const getFallbackInstructions = () => {
-  return [
-    { 
-      id: 1, 
-      text: 'Check if the person is responsive by tapping them and asking if they\'re okay.' 
+export const getFallbackInstructions = async(prompt:string): Promise<string> => {
+  const response = await fetch("http://localhost:8080/", {
+    method: "Post",
+    headers: {
+      "Content-Type": "application/json",
     },
-    { 
-      id: 2, 
-      text: 'Ensure the scene is safe for both you and the person before approaching.' 
-    },
-    { 
-      id: 3, 
-      text: 'Call for emergency services (911) if the situation appears serious or you\'re unsure.' 
-    },
-    { 
-      id: 4, 
-      text: 'Check their airway, breathing, and circulation if they are unresponsive.' 
-    },
-    { 
-      id: 5, 
-      text: 'If trained, provide appropriate first aid according to the situation.' 
-    },
-    { 
-      id: 6, 
-      text: 'Stay with the person and monitor their condition until help arrives.' 
-    }
-  ];
+    body: JSON.stringify({ prompt }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API call failed with status ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.response;
 };
