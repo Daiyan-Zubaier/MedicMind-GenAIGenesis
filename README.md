@@ -1,65 +1,50 @@
-**URL**: https://lovable.dev/projects/5449ffe9-319b-4f90-9cd1-460a928c0996
+# 🧠 MedicMind 🧠
 
-## How can I edit this code?
+## ❤️‍🩹 Overview
 
-There are several ways of editing your application.
+MedicMind is a React-based application designed to assist users in emergency situations by providing step-by-step first aid instructions. The app leverages voice synthesis to read instructions aloud and voice recognition (voice-to-text) to capture additional emergency details, creating a hands-free, accessible guide during critical moments.
 
-**Use Lovable**
+## ⚙️ Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/d7b813a9-88a4-479b-b662-d8f4c7b18a0b) and start prompting.
+- **Step-by-Step Emergency Guidance:**  
+  Follow a structured first aid guide for various emergencies.
+- **Voice Assistance:**  
+  Uses speech synthesis to read instructions aloud and (optionally) wait for voice commands to progress through the steps.
+- **Voice-to-Text Input:**  
+  Capture emergency details (such as location, witness contacts, notes, etc.) using voice-to-text functionality.
+- **Emergency Report Generation:**  
+  Compile all relevant information into a printable emergency report summarizing the actions taken.
+- **911 Call Integration:**  
+  Quickly initiate a call to emergency services directly from the app.
 
-Changes made via Lovable will be committed automatically to this repo.
+## ⌨️ Technology Structure
 
-**Use your preferred IDE**
+- **React:**  
+  The project is built using React to create a component-based UI, making it easy to manage state and handle dynamic content.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **TypeScript:**  
+  Type safety and enhanced developer productivity are achieved through the use of TypeScript.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Vite:**  
+  Vite is used as the build tool and development server, providing fast hot-module replacement and efficient bundling.
 
-Follow these steps:
+- **Tailwind CSS:**  
+  Styling is handled with Tailwind CSS, enabling a utility-first approach to quickly build a responsive and modern UI.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- **Web Speech API:**  
+  The browser’s Web Speech API is integrated for voice synthesis (reading instructions aloud) and voice recognition (converting speech to text).
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 💡 Getting Started
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Prerequisites
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+- [Node.js](https://nodejs.org/) (version 14 or higher)
+- npm or yarn
 
-**Edit a file directly in GitHub**
+### Installation
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. **Clone the Repository:**
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/d7b813a9-88a4-479b-b662-d8f4c7b18a0b) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+   ```bash
+   git clone https://github.com/Daiyan-Zubaier/First-Aid-AI.git
+   cd quick-response-guide
