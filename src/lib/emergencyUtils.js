@@ -39,31 +39,48 @@ export const analyzeEmergency = (query) => {
   return { isUrgent: isPotentiallyUrgent, callEmergency: false };
 };
 
-export const getFallbackInstructions = () => {
-  return [
-    { 
-      id: 1, 
-      text: 'Check is the person is responsive by tapping them and asking if they\'re okay.' 
+// export const getFallbackInstructions = () => {
+//   return [
+//     { 
+//       id: 1, 
+//       text: 'Check is the person is responsive by tapping them and asking if they\'re okay.' 
+//     },
+//     { 
+//       id: 2, 
+//       text: 'Ensure the scene is safe for both you and the person before approaching.' 
+//     },
+//     { 
+//       id: 3, 
+//       text: 'Call for emergency services (911) if the situation appears serious or you\'re unsure.' 
+//     },
+//     { 
+//       id: 4, 
+//       text: 'Check their airway, breathing, and circulation if they are unresponsive.' 
+//     },
+//     { 
+//       id: 5, 
+//       text: 'If trained, provide appropriate first aid according to the situation.' 
+//     },
+//     { 
+//       id: 6, 
+//       text: 'Stay with the person and monitor their condition until help arrives.' 
+//     }
+//   ];
+// };
+
+export const getFallbackInstructions = async (prompt) => {
+  const response = await fetch("http://localhost:8080/first-aid-guide", {
+    method: "POST", // <-- should be uppercase "POST"
+    headers: {
+      "Content-Type": "application/json",
     },
-    { 
-      id: 2, 
-      text: 'Ensure the scene is safe for both you and the person before approaching.' 
-    },
-    { 
-      id: 3, 
-      text: 'Call for emergency services (911) if the situation appears serious or you\'re unsure.' 
-    },
-    { 
-      id: 4, 
-      text: 'Check their airway, breathing, and circulation if they are unresponsive.' 
-    },
-    { 
-      id: 5, 
-      text: 'If trained, provide appropriate first aid according to the situation.' 
-    },
-    { 
-      id: 6, 
-      text: 'Stay with the person and monitor their condition until help arrives.' 
-    }
-  ];
+    body: JSON.stringify({ transcript: prompt }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API call failed with status ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.response;
 };
