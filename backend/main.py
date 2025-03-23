@@ -18,7 +18,7 @@ app = FastAPI(title="AI First-Aid Guide API")
 
 origins = [
     "http://localhost:3000",
-    "http://localhost:8080",  # Vite default port
+    "http://localhost:8000",  # Vite default port
     "http://127.0.0.1:5173"
 ]
 

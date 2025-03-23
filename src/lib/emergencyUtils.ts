@@ -1,5 +1,5 @@
-
-import { toast } from "sonner"
+import { toast } from "sonner";
+import OpenAI from "openai";
 
 export const analyzeEmergency = (query: string): { isUrgent: boolean; callEmergency: boolean } => {
   const normalizedQuery = query.toLowerCase();
@@ -8,7 +8,7 @@ export const analyzeEmergency = (query: string): { isUrgent: boolean; callEmerge
     'unconscious', 'not breathing', 'heart attack', 'stroke', 'seizure',
     'severe bleeding', 'choking', 'drowning', 'electric shock', 'poisoning',
     'suicide', 'overdose', 'gunshot', 'stab', 'anaphylaxis', 'allergic reaction',
-    'can\'t breathe', 'stopped breathing', 'no pulse', 'dying', 'collapsed',
+    "can't breathe", 'stopped breathing', 'no pulse', 'dying', 'collapsed',
     'cardiac arrest', 'heart stopped', 'not responding', 'unresponsive'
   ];
 
@@ -16,7 +16,6 @@ export const analyzeEmergency = (query: string): { isUrgent: boolean; callEmerge
     normalizedQuery.includes(keyword)
   );
   
-  // If it's an urgent situation that requires immediate emergency services
   if (callEmergencyServices) {
     toast("EMERGENCY SITUATION DETECTED", {
       description: "Please call emergency services (911) immediately while following first aid steps.",
@@ -26,10 +25,9 @@ export const analyzeEmergency = (query: string): { isUrgent: boolean; callEmerge
     return { isUrgent: true, callEmergency: true };
   }
   
-  // Check if it's urgent but might not necessarily need immediate 911
   const potentiallyUrgentKeywords = [
     'pain', 'severe', 'blood', 'injured', 'accident', 'fell', 'hit', 'cut',
-    'burn', 'broken', 'fracture', 'head', 's  pine', 'back', 'neck'
+    'burn', 'broken', 'fracture', 'head', 'spine', 'back', 'neck'
   ];
   
   const isPotentiallyUrgent = potentiallyUrgentKeywords.some(keyword => 
@@ -39,19 +37,37 @@ export const analyzeEmergency = (query: string): { isUrgent: boolean; callEmerge
   return { isUrgent: isPotentiallyUrgent, callEmergency: false };
 };
 
-export const getFallbackInstructions = async(prompt:string): Promise<string> => {
-  const response = await fetch("http://localhost:8080/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ prompt }),
+export const getFallbackInstructions = async(prompt: string): Promise<string> => {
+  const openai = new OpenAI({
+    apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true, // WARNING: Exposing your API key in the browser is not recommended in production!
   });
 
-  if (!response.ok) {
-    throw new Error(`API call failed with status ${response.status}`);
-  }
+  const openaiPrompt = `You are an AI first aid assistant. Provide clear, step-by-step first aid instructions for the following situation:
+  
+"${prompt}"
 
-  const data = await response.json();
-  return data.response;
+Important guidelines:
+1. If this is a life-threatening emergency, start your response with "CALL 911 IMMEDIATELY."
+2. Provide concise, actionable steps in a numbered list.
+3. Use simple, clear language that anyone can follow in an emergency.
+4. If more information is needed to provide proper guidance, ask specific follow-up questions.
+5. Include when to seek professional medical help.
+6. Make the response conversational and reassuring.
+`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4", // fallback to "gpt-3.5-turbo" if needed
+      messages: [
+        { role: "system", content: "You are a first aid expert providing emergency medical guidance." },
+        { role: "user", content: openaiPrompt }
+      ],
+      temperature: 0.3,
+    });
+
+    return response.choices[0].message.content.trim();
+  } catch (error: any) {
+    throw new Error(`Failed to generate instructions: ${error.message}`);
+  }
 };

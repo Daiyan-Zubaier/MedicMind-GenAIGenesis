@@ -33,8 +33,9 @@ const Index = () => {
     
     // Simulate processing delay for better UX
     setTimeout(() => {
-      const emergency =  getMatchingEmergency(input);
-      const { isUrgent: urgent } = analyzeEmergency(input);
+      const emergency = getMatchingEmergency(input);
+      const urgency = analyzeEmergency(input); // returns "high" or "medium"
+      const urgent = urgency === "high";
       
       if (emergency) {
         setCurrentEmergency(emergency);
@@ -50,10 +51,10 @@ const Index = () => {
             console.error(err);
             setInstructions([{ id: 10000, text: 'Sorry, I couldn\'t find any instructions for that emergency.' }]);
           });
-        }
-        
         setIsUrgent(urgent);
-        setIsProcessing(false);
+      }
+      
+      setIsProcessing(false);
     }, 1000);
   };
 
