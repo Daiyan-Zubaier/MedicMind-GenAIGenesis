@@ -25,9 +25,6 @@ MedicMind is a React-based application designed to assist users in emergency sit
 - **TypeScript:**  
   Type safety and enhanced developer productivity are achieved through the use of TypeScript.
 
-- **Vite:**  
-  Vite is used as the build tool and development server, providing fast hot-module replacement and efficient bundling.
-
 - **Tailwind CSS:**  
   Styling is handled with Tailwind CSS, enabling a utility-first approach to quickly build a responsive and modern UI.
 
