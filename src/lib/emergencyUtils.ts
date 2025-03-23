@@ -41,7 +41,7 @@ export const analyzeEmergency = (query: string): { isUrgent: boolean; callEmerge
 
 export const getFallbackInstructions = async(prompt:string): Promise<string> => {
   const response = await fetch("http://localhost:8080/", {
-    method: "Post",
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
