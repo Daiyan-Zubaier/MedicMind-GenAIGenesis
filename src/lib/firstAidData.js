@@ -79,32 +79,7 @@ export const commonEmergencies = [
     icon: 'heart',
     isUrgent: true,
     instructions: [
-      { 
-        id: 1, 
-        text: 'Call 911 immediately - do not delay.',
-        isUrgent: true 
-      },
-      { 
-        id: 2, 
-        text: 'Help the person sit or lie down in a comfortable position, with head and shoulders elevated.' 
-      },
-      { 
-        id: 3, 
-        text: 'If the person is not allergic to aspirin and if advised by emergency services, give them a 325 mg aspirin to chew (not swallow whole).' 
-      },
-      { 
-        id: 4, 
-        text: 'Loosen any tight clothing, especially around the chest or neck.' 
-      },
-      { 
-        id: 5, 
-        text: 'Stay with the person and monitor their condition until emergency services arrive.' 
-      },
-      { 
-        id: 6, 
-        text: 'Be prepared to perform CPR if the person becomes unconscious and is not breathing normally.',
-        imageUrl: 'https://www.redcross.org/content/dam/redcross/uncategorized/6/cpr-adult.jpg'
-      }
+      fetch("http://localhost:3000//first-aid-guide")
     ]
   },
   {

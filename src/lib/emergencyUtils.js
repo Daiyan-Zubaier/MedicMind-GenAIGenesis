@@ -43,7 +43,7 @@ export const getFallbackInstructions = () => {
   return [
     { 
       id: 1, 
-      text: 'Check if the person is responsive by tapping them and asking if they\'re okay.' 
+      text: 'Check is the person is responsive by tapping them and asking if they\'re okay.' 
     },
     { 
       id: 2, 
