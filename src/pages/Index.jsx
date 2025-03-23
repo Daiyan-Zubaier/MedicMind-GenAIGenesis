@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import EmergencyInput from '@/components/EmergencyInput';
@@ -27,21 +26,27 @@ const Index = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const processEmergency = (input) => {
+  const processEmergency = async (input) => {
     setIsProcessing(true);
     
     // Simulate processing delay for better UX
-    setTimeout(() => {
+    setTimeout(async () => {
       const emergency = getMatchingEmergency(input);
       const { isUrgent: urgent } = analyzeEmergency(input);
       
       if (emergency) {
         setCurrentEmergency(emergency);
-        setInstructions(emergency.instructions);
+        setInstructions(emergency.instructions || []);
         setIsUrgent(emergency.isUrgent || urgent);
       } else {
         setCurrentEmergency(null);
-        setInstructions(getFallbackInstructions());
+        try {
+          const fallbackInstructions = await getFallbackInstructions(input);
+          setInstructions(fallbackInstructions || []);
+        } catch (error) {
+          console.error(error);
+          setInstructions([{ id: 10000, text: 'Sorry, I couldn\'t find any instructions for that emergency.' }]);
+        }
         setIsUrgent(urgent);
       }
       

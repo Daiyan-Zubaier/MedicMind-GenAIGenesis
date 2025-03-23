@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import EmergencyInput from '@/components/EmergencyInput';
@@ -42,7 +41,14 @@ const Index = () => {
         setIsUrgent(emergency.isUrgent || urgent);
       } else {
         setCurrentEmergency(null);
-        setInstructions(getFallbackInstructions());
+        getFallbackInstructions(input)
+          .then((output_) => {
+            setInstructions([{ id: 10000, text: output_ }]);
+          })
+          .catch((err) => {
+            console.error(err);
+            setInstructions([{ id: 10000, text: 'Sorry, I couldn\'t find any instructions for that emergency.' }]);
+          });
         setIsUrgent(urgent);
       }
       
