@@ -43,4 +43,4 @@ MedicMind is a React-based application designed to assist users in emergency sit
 1. **Clone the Repository:**
 
    ```bash
-   git clone https://github.com/arushan13/MedicMind-GenAIGenesis.git
+   git clone https://github.com/Daiyan-Zubaier/MedicMind-GenAIGenesis.git
