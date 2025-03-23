@@ -38,5 +38,9 @@ MedicMind is a React-based application designed to assist users in emergency sit
 - [Node.js](https://nodejs.org/) (version 14 or higher)
 - npm or yarn
 
-🚀 Running the Project
+## 🚀 Running the Project
 Our project's been deployed online at https://medic-mind-gen-ai-genesis-kit2.vercel.app/, just click the link to run through our project!
+
+
+
+Made by: Daiyan Zubaier, Afnan Alam, Arushan Arulraj & Diya Aggarawl
