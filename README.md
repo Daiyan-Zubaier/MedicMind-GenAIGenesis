@@ -43,4 +43,4 @@ Our project's been deployed online at https://medic-mind-gen-ai-genesis-kit2.ver
 
 
 
-Made by: Daiyan Zubaier, Afnan Alam, Arushan Arulraj & Diya Aggarawl
+Made by: Daiyan Zubaier, Afnan Alam, Arushan Arulraj & Diya Aggarwal
