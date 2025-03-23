@@ -79,8 +79,33 @@ export const commonEmergencies = [
     icon: 'heart',
     isUrgent: true,
     instructions: [
-      fetch("http://localhost:3000//first-aid-guide")
-    ]
+
+      { 
+        id: 1, 
+        text: 'TEMPORARY TEMP TEMP has stopped and remove the person from the source of the burn.' 
+      },
+      { 
+        id: 2, 
+        text: 'For minor burns, cool the burn with cool (not cold) running water for 10-15 minutes.',
+        imageUrl: 'https://www.redcross.org/content/dam/redcrossblood/rcb/donate-blood/burn-minor-treatment.jpg'
+      },
+      { 
+        id: 3, 
+        text: 'Do not use ice, as this can cause further damage to the tissue.' 
+      },
+      { 
+        id: 4, 
+        text: 'Remove any jewelry or tight items from the burned area before swelling occurs.' 
+      },
+      { 
+        id: 5, 
+        text: 'Cover the burn with a sterile, non-stick bandage or clean cloth.' 
+      },
+      { 
+        id: 6, 
+        text: 'For severe burns (charred, white, or deep), call 911 immediately. Do not immerse large severe burns in water, and do not remove burnt clothing stuck to the skin.',
+        isUrgent: true 
+      }    ]
   },
   {
     id: 'burns',
